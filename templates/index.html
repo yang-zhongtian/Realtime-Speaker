@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Speaker</title>
+		<link rel="stylesheet" href="/static/css/bootstrap.min.css" />
+		<script src="/static/jquery/jquery-3.4.1.min.js"></script>
+		<script src="/static/js/bootstrap.min.js"></script>
+		<script src="/static/jquery/socket.io.js"></script>
+		<script>
+		$(document).keyup(function(event){
+			if(event.keyCode ==13){
+			send();
+			}
+		});
+		function showNotification(text) {
+                window.Notification.permission = "granted";
+                //alert(window.Notification.permission);
+                if(window.Notification) {
+                    if(window.Notification.permission == "granted") {
+                        var notification = new Notification('新信息', {
+                            body: text
+                        });
+                        setTimeout(function() { notification.close(); }, 5000);
+                    } else {
+                        window.Notification.requestPermission();
+                    }
+                } else alert('你的浏览器不支持此消息提示功能，请使用chrome内核的浏览器！');
+            };
+			var room; 
+			var socket;
+			function connect()
+			{
+				room=$("#channel").val();
+				socket=io.connect(location.protocol+'//'+document.domain+':'+location.port);
+				socket.on('send', function(res){
+					console.log(res.data)
+					add(res.data);
+				});
+
+			}
+			function send()
+			{
+				texts=$("#text").val();
+				//console.log(texts);
+				$("#text").val("");
+				socket.emit("recieve",texts);
+			}
+			function add(val)
+			{
+				$("#message").append('<div class="well well-sm">'+val+'</div>');
+				var ele = document.getElementById('scroll');
+				ele.scrollTop = ele.scrollHeight;
+				showNotification(val);
+			}
+		</script>
+	</head>
+	<body>
+		<div class="container">
+			<nav class="navbar navbar-default" role="navigation">
+					<div class="navbar-header">
+						<a class="navbar-brand" href="#">Spraker</a>
+					</div>
+			</nav>
+			<div class="row">
+				<div class="col-sm-12 col-md-2"></div>
+				<div class="col-sm-12 col-md-8">
+					<div class="text-center">
+						<div class="form-inline">
+							<label for="channel">选择频道</label>
+							<select class="form-control" id="channel">
+								<option>1</option>
+								<!--<option>2</option>-->
+							</select>
+							<button onclick="connect()" class="btn btn-default">进入</button>
+						</div>
+					</div>
+					<p></p>
+					<div id="scroll" class="pre-scrollable panel panel-default" style="height:80%;overflow:auto;">
+						<div id="message" class="container-fluid">
+							<p></p>
+						</div>
+					</div>
+					<div class="form-inline" style="height:10%">
+						<input type="text" class="form-control" id="text" placeholder="消息"></input>
+						<button onclick="send()" class="btn btn-default">发送</button>
+					</div>
+				</div>
+				<div class="col-sm-12 col-md-2"></div>
+			</div>
+		</div>
+	</body>
+</html>
